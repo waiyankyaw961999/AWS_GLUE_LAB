@@ -1,0 +1,332 @@
+{
+  "jobConfig": {
+    "name": "Glue Lab",
+    "description": "",
+    "role": "arn:aws:iam::576122347403:role/Glue",
+    "command": "glueetl",
+    "version": "3.0",
+    "workerType": "G.1X",
+    "numberOfWorkers": 10,
+    "maxCapacity": 10,
+    "maxRetries": 0,
+    "timeout": 2880,
+    "maxConcurrentRuns": 1,
+    "security": "none",
+    "scriptName": "Glue Lab.py",
+    "scriptLocation": "s3://aws-glue-assets-576122347403-ap-southeast-1/scripts/",
+    "language": "python-3",
+    "jobParameters": [],
+    "tags": [],
+    "jobMode": "VISUAL_MODE",
+    "developerMode": false,
+    "connectionsList": [],
+    "temporaryDirectory": "s3://aws-glue-assets-576122347403-ap-southeast-1/temporary/",
+    "logging": true,
+    "glueHiveMetastore": true,
+    "etlAutoTuning": true,
+    "metrics": true,
+    "spark": true,
+    "bookmark": "job-bookmark-disable",
+    "sparkPath": "s3://aws-glue-assets-576122347403-ap-southeast-1/sparkHistoryLogs/",
+    "flexExecution": false,
+    "minFlexWorkers": null,
+    "sourceControlDetails": {
+      "Provider": "GITHUB",
+      "Repository": "",
+      "Branch": ""
+    }
+  },
+  "dag": {
+    "node-1666976879356": {
+      "nodeId": "node-1666976879356",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": ["node-1666976702542"],
+      "name": "Covid Output",
+      "generatedNodeName": "CovidOutput_node1666976879356",
+      "classification": "DataSink",
+      "type": "S3",
+      "streamingBatchInterval": 100,
+      "format": "glueparquet",
+      "compression": "none",
+      "path": "s3://dev-ams.momoney.com.mm/curated/covid/",
+      "partitionKeys": ["country_region"],
+      "schemaChangePolicy": {
+        "enableUpdateCatalog": true,
+        "updateBehavior": "UPDATE_IN_DATABASE",
+        "database": "covid-bitcoin",
+        "table": "covid_csv"
+      },
+      "updateCatalogOptions": "schemaAndPartitions",
+      "calculatedType": "",
+      "codeGenVersion": 2
+    },
+    "node-1666977597468": {
+      "nodeId": "node-1666977597468",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": ["node-1666976991651"],
+      "name": "Change Schema (Apply Mapping)",
+      "generatedNodeName": "ChangeSchemaApplyMapping_node1666977597468",
+      "classification": "Transform",
+      "type": "ApplyMapping",
+      "mapping": [
+        {
+          "toKey": "x",
+          "fromPath": ["x"],
+          "toType": "timestamp",
+          "fromType": "long",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "y",
+          "fromPath": ["y"],
+          "toType": "double",
+          "fromType": "double",
+          "dropped": false,
+          "children": null
+        }
+      ],
+      "parentsValid": true,
+      "calculatedType": "",
+      "codeGenVersion": 2
+    },
+    "node-1666980605361": {
+      "nodeId": "node-1666980605361",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": ["node-1666977714239"],
+      "name": "Select From Collection",
+      "generatedNodeName": "SelectFromCollection_node1666980605361",
+      "classification": "Transform",
+      "type": "SelectFromCollection",
+      "index": 0,
+      "parentsValid": true,
+      "calculatedType": "",
+      "codeGenVersion": 2
+    },
+    "node-1666977714239": {
+      "nodeId": "node-1666977714239",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": ["node-1666977597468"],
+      "name": "Custom Transform",
+      "generatedNodeName": "CustomTransform_node1666977714239",
+      "classification": "Transform",
+      "type": "CustomCode",
+      "code": "from pyspark.sql.functions import split,col\ndf = dfc.select(list(dfc.keys())[0]).toDF()\ndf = df.withColumn(\"date-only\",split(col(\"x\"),\" \").getItem(0))\ndyf_dmy = DynamicFrame.fromDF(df,glueContext,\"remove_time\")\n\nreturn(DynamicFrameCollection({\"CustomTransform1\": dyf_dmy}, glueContext))    ",
+      "className": "MyTransform",
+      "outputSchemas": [
+        [
+          {
+            "key": "x",
+            "fullPath": ["x"],
+            "type": "timestamp",
+            "children": null
+          },
+          {
+            "key": "y",
+            "fullPath": ["y"],
+            "type": "double",
+            "children": null
+          },
+          {
+            "key": "date-only",
+            "fullPath": ["date-only"],
+            "type": "string",
+            "children": null
+          }
+        ]
+      ],
+      "parentsValid": true,
+      "calculatedType": "",
+      "codeGenVersion": 2
+    },
+    "node-1666980665214": {
+      "nodeId": "node-1666980665214",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": ["node-1666980605361"],
+      "name": "Amazon S3",
+      "generatedNodeName": "AmazonS3_node1666980665214",
+      "classification": "DataSink",
+      "type": "S3",
+      "streamingBatchInterval": 100,
+      "format": "json",
+      "compression": "none",
+      "path": "s3://dev-ams.momoney.com.mm/curated/btc/",
+      "partitionKeys": [],
+      "schemaChangePolicy": {
+        "enableUpdateCatalog": true,
+        "updateBehavior": "UPDATE_IN_DATABASE",
+        "database": "covid-bitcoin",
+        "table": "btcusd_csv"
+      },
+      "updateCatalogOptions": "schemaAndPartitions",
+      "calculatedType": "",
+      "codeGenVersion": 2
+    },
+    "node-1666976702542": {
+      "nodeId": "node-1666976702542",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": ["node-1666970104658"],
+      "name": "Change Schema (Apply Mapping)",
+      "generatedNodeName": "ChangeSchemaApplyMapping_node1666976702542",
+      "classification": "Transform",
+      "type": "ApplyMapping",
+      "mapping": [
+        {
+          "toKey": "uid",
+          "fromPath": ["uid"],
+          "toType": "long",
+          "fromType": "long",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "iso2",
+          "fromPath": ["iso2"],
+          "toType": "string",
+          "fromType": "string",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "iso3",
+          "fromPath": ["iso3"],
+          "toType": "string",
+          "fromType": "string",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "code3",
+          "fromPath": ["code3"],
+          "toType": "long",
+          "fromType": "long",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "admin2",
+          "fromPath": ["admin2"],
+          "toType": "string",
+          "fromType": "string",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "latitude",
+          "fromPath": ["latitude"],
+          "toType": "double",
+          "fromType": "double",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "longitude",
+          "fromPath": ["longitude"],
+          "toType": "double",
+          "fromType": "double",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "province_state",
+          "fromPath": ["province_state"],
+          "toType": "string",
+          "fromType": "string",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "date",
+          "fromPath": ["date"],
+          "toType": "string",
+          "fromType": "string",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "confirmed",
+          "fromPath": ["confirmed"],
+          "toType": "long",
+          "fromType": "long",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "deaths",
+          "fromPath": ["deaths"],
+          "toType": "long",
+          "fromType": "long",
+          "dropped": false,
+          "children": null
+        },
+        {
+          "toKey": "recovered",
+          "fromPath": ["recovered"],
+          "toType": "long",
+          "fromType": "long",
+          "dropped": false
+        },
+        {
+          "toKey": "country_region",
+          "fromPath": ["country_region"],
+          "toType": "string",
+          "fromType": "string",
+          "dropped": false,
+          "children": null
+        }
+      ],
+      "parentsValid": true,
+      "calculatedType": "",
+      "codeGenVersion": 2
+    },
+    "node-1666976991651": {
+      "nodeId": "node-1666976991651",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": [],
+      "name": "BTC",
+      "generatedNodeName": "BTC_node1666976991651",
+      "classification": "DataSource",
+      "type": "S3",
+      "isCatalog": true,
+      "database": "covid-bitcoin",
+      "table": "btcusd_csv",
+      "partitionPredicate": "",
+      "additionalOptions": {
+        "boundedSize": null,
+        "boundedFiles": null,
+        "boundedOption": null
+      },
+      "calculatedType": "CatalogS3DataSource",
+      "codeGenVersion": 2
+    },
+    "node-1666970104658": {
+      "nodeId": "node-1666970104658",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": [],
+      "name": "Covid",
+      "generatedNodeName": "Covid_node1666970104658",
+      "classification": "DataSource",
+      "type": "S3",
+      "isCatalog": true,
+      "database": "covid-bitcoin",
+      "table": "covid_csv",
+      "partitionPredicate": "",
+      "additionalOptions": {
+        "boundedSize": null,
+        "boundedFiles": null,
+        "boundedOption": null
+      },
+      "calculatedType": "CatalogS3DataSource",
+      "codeGenVersion": 2
+    }
+  },
+  "hasBeenSaved": false
+}
