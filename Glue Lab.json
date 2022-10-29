@@ -1,6 +1,6 @@
 {
   "jobConfig": {
-    "name": "Glue Lab",
+    "name": "Glue Test",
     "description": "",
     "role": "arn:aws:iam::576122347403:role/Glue",
     "command": "glueetl",
@@ -12,7 +12,7 @@
     "timeout": 2880,
     "maxConcurrentRuns": 1,
     "security": "none",
-    "scriptName": "Glue Lab.py",
+    "scriptName": "Glue Test.py",
     "scriptLocation": "s3://aws-glue-assets-576122347403-ap-southeast-1/scripts/",
     "language": "python-3",
     "jobParameters": [],
@@ -31,17 +31,51 @@
     "flexExecution": false,
     "minFlexWorkers": null,
     "sourceControlDetails": {
-      "Provider": "GITHUB",
-      "Repository": "",
-      "Branch": ""
+      "Provider": "GITHUB"
     }
   },
   "dag": {
+    "node-1667015128488": {
+      "nodeId": "node-1667015128488",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": [
+        "node-1666976702542",
+        "node-1666980605361"
+      ],
+      "name": "Join",
+      "generatedNodeName": "Join_node1667015128488",
+      "classification": "Transform",
+      "type": "Join",
+      "joinType": "outer",
+      "columns": [
+        {
+          "from": "node-1666976702542",
+          "keys": [
+            "date"
+          ]
+        },
+        {
+          "from": "node-1666980605361",
+          "keys": [
+            "date-only"
+          ]
+        }
+      ],
+      "columnConditions": [
+        "="
+      ],
+      "parentsValid": true,
+      "calculatedType": "",
+      "codeGenVersion": 2
+    },
     "node-1666976879356": {
       "nodeId": "node-1666976879356",
       "dataPreview": false,
       "previewAmount": 0,
-      "inputs": ["node-1666976702542"],
+      "inputs": [
+        "node-1666976702542"
+      ],
       "name": "Covid Output",
       "generatedNodeName": "CovidOutput_node1666976879356",
       "classification": "DataSink",
@@ -50,7 +84,9 @@
       "format": "glueparquet",
       "compression": "none",
       "path": "s3://dev-ams.momoney.com.mm/curated/covid/",
-      "partitionKeys": ["country_region"],
+      "partitionKeys": [
+        "country_region"
+      ],
       "schemaChangePolicy": {
         "enableUpdateCatalog": true,
         "updateBehavior": "UPDATE_IN_DATABASE",
@@ -58,14 +94,15 @@
         "table": "covid_csv"
       },
       "updateCatalogOptions": "schemaAndPartitions",
-      "calculatedType": "",
-      "codeGenVersion": 2
+      "calculatedType": ""
     },
     "node-1666977597468": {
       "nodeId": "node-1666977597468",
       "dataPreview": false,
       "previewAmount": 0,
-      "inputs": ["node-1666976991651"],
+      "inputs": [
+        "node-1666976991651"
+      ],
       "name": "Change Schema (Apply Mapping)",
       "generatedNodeName": "ChangeSchemaApplyMapping_node1666977597468",
       "classification": "Transform",
@@ -73,7 +110,9 @@
       "mapping": [
         {
           "toKey": "x",
-          "fromPath": ["x"],
+          "fromPath": [
+            "x"
+          ],
           "toType": "timestamp",
           "fromType": "long",
           "dropped": false,
@@ -81,7 +120,9 @@
         },
         {
           "toKey": "y",
-          "fromPath": ["y"],
+          "fromPath": [
+            "y"
+          ],
           "toType": "double",
           "fromType": "double",
           "dropped": false,
@@ -92,11 +133,38 @@
       "calculatedType": "",
       "codeGenVersion": 2
     },
+    "node-1667015768996": {
+      "nodeId": "node-1667015768996",
+      "dataPreview": false,
+      "previewAmount": 0,
+      "inputs": [
+        "node-1667015128488"
+      ],
+      "name": "Joined Data",
+      "generatedNodeName": "JoinedData_node1667015768996",
+      "classification": "DataSink",
+      "type": "S3",
+      "streamingBatchInterval": 100,
+      "format": "glueparquet",
+      "compression": "none",
+      "path": "s3://dev-ams.momoney.com.mm/curated/",
+      "partitionKeys": [],
+      "schemaChangePolicy": {
+        "enableUpdateCatalog": true,
+        "updateBehavior": "UPDATE_IN_DATABASE",
+        "database": "covid-bitcoin",
+        "table": "covid-btc"
+      },
+      "updateCatalogOptions": "schemaAndPartitions",
+      "calculatedType": ""
+    },
     "node-1666980605361": {
       "nodeId": "node-1666980605361",
       "dataPreview": false,
       "previewAmount": 0,
-      "inputs": ["node-1666977714239"],
+      "inputs": [
+        "node-1666977714239"
+      ],
       "name": "Select From Collection",
       "generatedNodeName": "SelectFromCollection_node1666980605361",
       "classification": "Transform",
@@ -110,7 +178,9 @@
       "nodeId": "node-1666977714239",
       "dataPreview": false,
       "previewAmount": 0,
-      "inputs": ["node-1666977597468"],
+      "inputs": [
+        "node-1666977597468"
+      ],
       "name": "Custom Transform",
       "generatedNodeName": "CustomTransform_node1666977714239",
       "classification": "Transform",
@@ -121,19 +191,25 @@
         [
           {
             "key": "x",
-            "fullPath": ["x"],
+            "fullPath": [
+              "x"
+            ],
             "type": "timestamp",
             "children": null
           },
           {
             "key": "y",
-            "fullPath": ["y"],
+            "fullPath": [
+              "y"
+            ],
             "type": "double",
             "children": null
           },
           {
             "key": "date-only",
-            "fullPath": ["date-only"],
+            "fullPath": [
+              "date-only"
+            ],
             "type": "string",
             "children": null
           }
@@ -147,13 +223,15 @@
       "nodeId": "node-1666980665214",
       "dataPreview": false,
       "previewAmount": 0,
-      "inputs": ["node-1666980605361"],
+      "inputs": [
+        "node-1666980605361"
+      ],
       "name": "Amazon S3",
       "generatedNodeName": "AmazonS3_node1666980665214",
       "classification": "DataSink",
       "type": "S3",
       "streamingBatchInterval": 100,
-      "format": "json",
+      "format": "glueparquet",
       "compression": "none",
       "path": "s3://dev-ams.momoney.com.mm/curated/btc/",
       "partitionKeys": [],
@@ -164,14 +242,15 @@
         "table": "btcusd_csv"
       },
       "updateCatalogOptions": "schemaAndPartitions",
-      "calculatedType": "",
-      "codeGenVersion": 2
+      "calculatedType": ""
     },
     "node-1666976702542": {
       "nodeId": "node-1666976702542",
       "dataPreview": false,
       "previewAmount": 0,
-      "inputs": ["node-1666970104658"],
+      "inputs": [
+        "node-1666970104658"
+      ],
       "name": "Change Schema (Apply Mapping)",
       "generatedNodeName": "ChangeSchemaApplyMapping_node1666976702542",
       "classification": "Transform",
@@ -179,7 +258,9 @@
       "mapping": [
         {
           "toKey": "uid",
-          "fromPath": ["uid"],
+          "fromPath": [
+            "uid"
+          ],
           "toType": "long",
           "fromType": "long",
           "dropped": false,
@@ -187,7 +268,9 @@
         },
         {
           "toKey": "iso2",
-          "fromPath": ["iso2"],
+          "fromPath": [
+            "iso2"
+          ],
           "toType": "string",
           "fromType": "string",
           "dropped": false,
@@ -195,7 +278,9 @@
         },
         {
           "toKey": "iso3",
-          "fromPath": ["iso3"],
+          "fromPath": [
+            "iso3"
+          ],
           "toType": "string",
           "fromType": "string",
           "dropped": false,
@@ -203,7 +288,9 @@
         },
         {
           "toKey": "code3",
-          "fromPath": ["code3"],
+          "fromPath": [
+            "code3"
+          ],
           "toType": "long",
           "fromType": "long",
           "dropped": false,
@@ -211,7 +298,9 @@
         },
         {
           "toKey": "admin2",
-          "fromPath": ["admin2"],
+          "fromPath": [
+            "admin2"
+          ],
           "toType": "string",
           "fromType": "string",
           "dropped": false,
@@ -219,7 +308,9 @@
         },
         {
           "toKey": "latitude",
-          "fromPath": ["latitude"],
+          "fromPath": [
+            "latitude"
+          ],
           "toType": "double",
           "fromType": "double",
           "dropped": false,
@@ -227,7 +318,9 @@
         },
         {
           "toKey": "longitude",
-          "fromPath": ["longitude"],
+          "fromPath": [
+            "longitude"
+          ],
           "toType": "double",
           "fromType": "double",
           "dropped": false,
@@ -235,7 +328,9 @@
         },
         {
           "toKey": "province_state",
-          "fromPath": ["province_state"],
+          "fromPath": [
+            "province_state"
+          ],
           "toType": "string",
           "fromType": "string",
           "dropped": false,
@@ -243,7 +338,9 @@
         },
         {
           "toKey": "date",
-          "fromPath": ["date"],
+          "fromPath": [
+            "date"
+          ],
           "toType": "string",
           "fromType": "string",
           "dropped": false,
@@ -251,7 +348,9 @@
         },
         {
           "toKey": "confirmed",
-          "fromPath": ["confirmed"],
+          "fromPath": [
+            "confirmed"
+          ],
           "toType": "long",
           "fromType": "long",
           "dropped": false,
@@ -259,7 +358,9 @@
         },
         {
           "toKey": "deaths",
-          "fromPath": ["deaths"],
+          "fromPath": [
+            "deaths"
+          ],
           "toType": "long",
           "fromType": "long",
           "dropped": false,
@@ -267,14 +368,19 @@
         },
         {
           "toKey": "recovered",
-          "fromPath": ["recovered"],
+          "fromPath": [
+            "recovered"
+          ],
           "toType": "long",
           "fromType": "long",
-          "dropped": false
+          "dropped": false,
+          "children": null
         },
         {
           "toKey": "country_region",
-          "fromPath": ["country_region"],
+          "fromPath": [
+            "country_region"
+          ],
           "toType": "string",
           "fromType": "string",
           "dropped": false,
